@@ -1,0 +1,8 @@
+cff-version: 0.0.11
+message: "If you use this mfe-runtime-defects repository for your experiments and research, please cite it as below."
+authors:
+  - family-names: Lando
+    given-names: Billy
+title: "Micro-frontends runtime defects"
+version: 0.0.1
+date-released: 2026-06-18
