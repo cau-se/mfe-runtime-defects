@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+  EXAMPLE 2 — Lit 3.3 composition shell
+  Run:  npm install && npm run dev
+
+  WHAT TO OBSERVE
+  D1: Team A's button renders BLUE and square, even though both
+      components use Shadow DOM. Custom properties pierce shadow
+      boundaries by design → Shadow DOM does not mitigate token
+      indirection. Swap the two import lines below (load order!)
+      and the hijack reverses.
+
+  D2: Click "#/cart". Open the console: Router A handles it, then
+      Router B's catch-all rewrites the URL to #/promo.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MFE Bug Suite — 02 Lit</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        max-width: 640px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>02 — Lit web components composition</h1>
+    <nav><a href="#/home">#/home</a> · <a href="#/cart">#/cart</a></nav>
+
+    <team-a-checkout></team-a-checkout>
+    <team-b-profile></team-b-profile>
+
+    <!-- Load order experiment: swap these two lines and reload (metric M1) -->
+    <script type="module" src="/src/team-a-checkout.js"></script>
+    <script type="module" src="/src/team-b-profile.js"></script>
+  </body>
+</html>
