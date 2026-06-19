@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Micro-Frontend Composition — CSS & Routing Conflicts</title>
+
+    <!--
+    EXPERIMENT OVERVIEW
+
+    This file demonstrates two runtime composition problems that occur
+    when independently developed frontend modules share a single page:
+
+    D1 — Global CSS token collision via :root custom properties
+    D2 — Route ownership conflict via shared hash-based navigation
+
+    Each module is internally correct when run in isolation.
+    The issues appear only when composed in a single runtime.
+    -->
+
+    <style id="team-a-tokens">
+      /*
+        D1 — Team A design tokens
+
+        These CSS custom properties are defined at :root level.
+        They represent globally scoped design tokens.
+        */
+      :root {
+        --brand-primary: #e2533f;
+        --brand-radius: 12px;
+        --brand-spacing: 14px;
+      }
+    </style>
+
+    <style id="team-b-tokens">
+      /*
+        D1 — Team B design tokens
+
+        Same token names, different values.
+        Because these variables are defined globally on :root,
+        the final value depends on load order (last write wins).
+        */
+      :root {
+        --brand-primary: #2b6fe3;
+        --brand-radius: 0px;
+        --brand-spacing: 8px;
+      }
+    </style>
+
+    <style>
+      /*
+        Shared UI styling
+        This simulates a shared page where multiple MFEs coexist.
+        */
+
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        max-width: 700px;
+      }
+
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        padding: 12px;
+      }
+
+      /*
+        Team A UI component uses design tokens indirectly.
+        It does not know or control where the variables come from.
+        */
+      .checkout-button {
+        background: var(--brand-primary);
+        border-radius: var(--brand-radius);
+        padding: var(--brand-spacing);
+        color: white;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      #log {
+        background: #111;
+        color: #9fb3c8;
+        font: 12px/1.5 monospace;
+        padding: 10px;
+        border-radius: 8px;
+        min-height: 100px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Micro-Frontend Composition Demo (Plain HTML)</h1>
+
+    <!-- ============================================================
+     MODULE A — UI COMPONENT (Checkout)
+     ============================================================ -->
+    <fieldset>
+      <legend>Team A — Checkout Module</legend>
+
+      <p>
+        This button expects a red theme based on design tokens. It does not
+        directly define colors.
+      </p>
+
+      <button class="checkout-button">Pay 9€</button>
+    </fieldset>
+
+    <!-- ============================================================
+     SHARED NAVIGATION SURFACE
+     ============================================================ -->
+    <fieldset>
+      <legend>Shared Navigation (Hash-based Router)</legend>
+
+      <p>
+        Both modules listen to the same global navigation state:
+        <code>window.location.hash</code>
+      </p>
+
+      <a href="#/home">#/home</a> · <a href="#/cart">#/cart</a> ·
+      <a href="#/promo">#/promo</a>
+
+      <pre id="log"></pre>
+    </fieldset>
+
+    <script>
+      /* Utility logger */
+      const log = (msg) => {
+        document.getElementById("log").textContent += msg + "\n";
+      };
+
+      /* ============================================================
+        D1 OBSERVATION — Runtime token resolution
+        ============================================================
+        We read the computed value of a global design token.
+
+        Important:
+        - Only one final value exists at runtime.
+        - That value depends on cascade order.
+        ============================================================ */
+      const expected = "#e2533f";
+
+      const actual = getComputedStyle(document.documentElement)
+        .getPropertyValue("--brand-primary")
+        .trim();
+
+      log("[D1] --brand-primary resolution:");
+      log("     expected: " + expected);
+      log("     actual:   " + actual);
+      log(
+        actual === expected
+          ? "     result: OK"
+          : "     result: CONFLICT (last-write-wins in global scope)",
+      );
+
+      /* ============================================================
+        D2 — ROUTING CONFLICT VIA SHARED GLOBAL STATE
+        ============================================================ */
+
+      /*
+        Router A:
+        - Owns /home and /cart routes
+        - Assumes exclusive control of navigation logic
+        */
+      window.addEventListener("hashchange", () => {
+        const path = location.hash.slice(1);
+
+        if (path === "/home" || path === "/cart") {
+          log("[Router A] handled route: " + path);
+        }
+      });
+
+      /*
+        Router B:
+        - Independent module with its own routing assumptions
+        - Introduces a catch-all fallback redirect
+        - This creates interference with Router A
+        */
+      window.addEventListener("hashchange", () => {
+        const path = location.hash.slice(1);
+
+        if (path === "/promo") {
+          log("[Router B] handled route: /promo");
+          return;
+        }
+
+        log("[Router B] unknown route: " + path + " → redirecting to /promo");
+
+        /*
+            Side effect:
+            This modifies global navigation state and overrides other routers.
+            */
+        location.hash = "#/promo";
+      });
+
+      /* ============================================================
+        INITIAL STATE INSPECTION
+        ============================================================ */
+      log("[Init] Micro-frontend composition demo loaded.");
+    </script>
+  </body>
+</html>

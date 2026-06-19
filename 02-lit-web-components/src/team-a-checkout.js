@@ -66,7 +66,7 @@ export class TeamACheckout extends LitElement {
   render() {
     return html`
       <p>Team A view: <b>${this.route}</b></p>
-      <button>Pay $9.00</button>
+      <button>Pay 9€</button>
     `;
   }
 }
