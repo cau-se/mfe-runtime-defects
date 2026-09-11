@@ -7,6 +7,11 @@ paper are emergent properties of composition, not artifacts of any particular
 framework, and are therefore invisible to per-unit static analysis,
 compilation, linting, and testing.
 
+
+- [01- Plain HTML demo](./01-plain-html/)
+- [02- Lit Web Components demo](./02-lit-web-components/)
+- [03- Angular Elements demo](./03-angular-elements/)
+
 ---
  
 ## Defect taxonomy
