@@ -8,6 +8,10 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
+  "author": {
+    "email": "billyjov@uni-bremen.de",
+    "name": "Billy Lando"
+  },
   "private": true,
   "packageManager": "npm@11.10.0",
   "dependencies": {

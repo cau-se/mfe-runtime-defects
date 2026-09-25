@@ -1,6 +1,10 @@
 {
   "name": "micro-frontend-1",
   "version": "0.0.0",
+  "author": {
+    "email": "billyjov@uni-bremen.de",
+    "name": "Billy Lando"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

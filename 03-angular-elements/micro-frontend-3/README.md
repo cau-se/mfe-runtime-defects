@@ -1,4 +1,4 @@
-# MicroFrontend3
+# Micro-Frontend 3
 
 ## Docker (Production)
 
@@ -23,5 +23,5 @@ docker run --rm -d -p 4303:80 micro-frontend-3:prod
 Micro frontend URL for shell integration:
 
 ```
-http://localhost:4301
+http://localhost:4303
 ```

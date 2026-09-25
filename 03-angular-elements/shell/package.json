@@ -8,6 +8,10 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
+  "author": {
+    "email": "billyjov@uni-bremen.de",
+    "name": "Billy Lando"
+  },
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
