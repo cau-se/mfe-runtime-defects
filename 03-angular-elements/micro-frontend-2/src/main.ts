@@ -5,6 +5,9 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { createCustomElement } from '@angular/elements';
+import { installRuntimeDebug } from './runtime-debug';
+
+installRuntimeDebug('MFE-2');
 
 (async (): Promise<void> => {
   const app = await createApplication({

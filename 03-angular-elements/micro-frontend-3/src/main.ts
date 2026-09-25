@@ -4,6 +4,9 @@ import { createApplication } from '@angular/platform-browser';
 
 import { App } from './app/app';
 import { appConfig } from './app/app.config';
+import { installRuntimeDebug } from './runtime-debug';
+
+installRuntimeDebug('MFE-3');
 
 (async (): Promise<void> => {
   const app = await createApplication({

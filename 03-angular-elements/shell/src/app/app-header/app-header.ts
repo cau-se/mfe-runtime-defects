@@ -19,7 +19,7 @@ export class AppHeader {
   // Angular versions scanned from each micro-frontend project
   // (node_modules/@angular/core in 03-angular-elements/micro-frontend-N).
   readonly links: NavLink[] = [
-    { label: 'MF1', version: '20.3.18', route: '/micro-frontend-1' },
+    { label: 'MF1', version: '20.0.0', route: '/micro-frontend-1' },
     { label: 'MF2', version: '21.2.6', route: '/micro-frontend-2' },
     { label: 'MF3', version: '20.3.19', route: '/micro-frontend-3' },
     { label: 'MF4', version: '22.2.0', route: '/micro-frontend-4' },

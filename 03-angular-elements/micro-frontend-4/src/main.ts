@@ -4,6 +4,9 @@ import { App } from './app/app';
 import { appConfig } from './app/app.config';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { createCustomElement } from '@angular/elements';
+import { installRuntimeDebug } from './runtime-debug';
+
+installRuntimeDebug('MFE-4');
 
 (async (): Promise<void> => {
   const app = await createApplication({

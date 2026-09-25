@@ -6,6 +6,9 @@ import { provideRouter } from '@angular/router';
 import { App } from './app/app';
 import { appConfig } from './app/app.config';
 import { routes } from './app/app.routes';
+import { installRuntimeDebug } from './runtime-debug';
+
+installRuntimeDebug('MFE-1');
 
 (async (): Promise<void> => {
   const app = await createApplication({
