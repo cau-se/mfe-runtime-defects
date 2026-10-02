@@ -27,12 +27,12 @@ mfe-runtime-defects/
 ├── 01-plain-html/              Single HTML file, no build step
 ├── 02-lit-web-components/      Two Lit MFEs + a shell page (Vite)
 ├── 03-angular-elements/        The main example used in the paper
-└── 04-tailwind-css/            Token configurations + probe harness + RESULTS.md
     ├── shell/                  Angular host application (port 4200)
     ├── micro-frontend-1/       Angular 20.0.0   (port 4301)
     ├── micro-frontend-2/       Angular 21.2.6   (port 4302)
     ├── micro-frontend-3/       Angular 20.3.19  (port 4303)
     └── micro-frontend-4/       Angular 22.2.0   (port 4304)
+└── 04-tailwind-css/            Token configurations + probe harness + RESULTS.md
 ```
 
 Each subfolder has its own README with details:
