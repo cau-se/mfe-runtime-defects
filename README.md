@@ -1,7 +1,7 @@
 # micro-frontends runtime defects
 
 Code artifact for the paper on runtime defects in micro-frontend (MFE)
-architectures. It contains three self-contained examples that demonstrate the
+architectures. It contains four self-contained examples that demonstrate the
 same class of runtime defects across progressively more isolated technology
 stacks:
 
@@ -9,6 +9,8 @@ stacks:
 - **02 — Lit web components**: Shadow DOM + native routing
 - **03 — Angular Elements**: four real Angular apps with *different* framework
   versions, composed into one shell
+- **04 — Tailwind CSS v4 tokens**: the four design-token configurations,
+  measured as computed styles rather than judged by eye
 
 The central claim they support: these defects are **emergent properties of
 composition**. Every project compiles cleanly, passes type checking, and
@@ -24,7 +26,8 @@ catch it.
 mfe-runtime-defects/
 ├── 01-plain-html/              Single HTML file, no build step
 ├── 02-lit-web-components/      Two Lit MFEs + a shell page (Vite)
-└── 03-angular-elements/        The main example used in the paper
+├── 03-angular-elements/        The main example used in the paper
+└── 04-tailwind-css/            Token configurations + probe harness + RESULTS.md
     ├── shell/                  Angular host application (port 4200)
     ├── micro-frontend-1/       Angular 20.0.0   (port 4301)
     ├── micro-frontend-2/       Angular 21.2.6   (port 4302)
@@ -37,6 +40,7 @@ Each subfolder has its own README with details:
 - [01 — Plain HTML baseline](./01-plain-html/README.md)
 - [02 — Lit web components](./02-lit-web-components/README.md)
 - [03 — Angular Elements](./03-angular-elements/README.md)
+- [04 — Tailwind CSS v4 tokens](./04-tailwind-css/README.md)
 
 ---
 
@@ -57,6 +61,11 @@ framework runtime. They deliberately span different major versions:
 The running (not declared) version is what matters. The instrumentation
 described below records each application's actual `VERSION.full` in every
 captured event, so the version matrix is verifiable from the recorded data.
+
+Example 04 uses its own toolchain: Tailwind CSS and `@tailwindcss/cli` 4.2.2,
+Node 24.0.0, npm 11.3.0, Google Chrome 154.0.8037.93 for the probe runs. The
+exact versions behind the committed numbers are recorded in
+[`04-tailwind-css/RESULTS.md`](./04-tailwind-css/RESULTS.md).
 
 ---
 
@@ -118,6 +127,33 @@ loads that MFE's production script (`http://localhost:430N/main.js`) from a
 > configuration must be in place (this is a documented part of the study:
 > cross-origin script failures degrade error reporting to an opaque
 > `ErrorEvent`).
+
+---
+
+## Running example 04 (Tailwind CSS v4 tokens)
+
+This is the CSS experiment. It is a measurement harness, not a page to click
+through:
+
+```bash
+cd 04-tailwind-css
+npm install
+npm run verify     # builds all configurations, then measures them with headless Chrome
+```
+
+`npm run verify` launches headless Chrome over four token configurations and two
+definition scopes and reads the computed `background-color` back from the DOM,
+so the recorded value is the browser's own resolution rather than a human
+reading. It also re-measures every configuration in isolation and prints
+`combined vs one-config-at-a-time: 16/16 identical`, which is the check that the
+side-by-side view is not perturbing the cascade. Commit the output to
+`RESULTS.md` when you re-run it.
+
+To see the core result without a terminal, build once and open
+`src/index.html`: two identical boxes, each declaring its own token value, one
+rendered transparent by `@theme` and one rendered red by `@theme inline`.
+`src/probe.html` shows all four configurations at once (`?scope=local` or
+`?scope=global`).
 
 ---
 
@@ -224,7 +260,18 @@ the document cascade, a shared global scope. When two independently built
 micro-frontends define the same token name with different values, the
 last-loaded stylesheet wins page-wide. No source file changes, no build step
 reports an error, and the outcome depends on stylesheet load order —
-non-deterministic across deployments.
+non-deterministic across deployments. Demonstrated by examples 01 and 02.
+
+**D1b — Token indirection across scopes.**
+The related but distinct failure in the production system: an exported design
+token forwards to another custom property (`--color-primary: var(--mfe-color-primary)`).
+Because `var()` is substituted where a custom property is *declared*, not where
+it is *used*, that inner reference is resolved at `:root` — before any
+micro-frontend subtree exists. If the concrete value is only declared locally,
+the chain resolves to the guaranteed-invalid value and the declaration is
+discarded with no diagnostic; if the name also exists at `:root`, the global
+value silently overrides the component's own. Measured across four
+declaration strategies (including Tailwind's `@theme inline`) in example 04.
 
 **D2 — Route shadowing.**
 The browser URL is a single shared resource. Each micro-frontend that

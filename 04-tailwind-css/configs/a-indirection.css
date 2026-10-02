@@ -1,0 +1,13 @@
+/* Configuration A - token indirection, no fallback.
+   The production pattern: the exported design token forwards to another custom
+   property whose concrete value is supplied elsewhere.
+   Emits:  .bg-indirect { background-color: var(--color-indirect); }
+   Same token name as configs/compare.css, so the isolated and the combined
+   builds are directly comparable. */
+@import "tailwindcss";
+
+@source "../src";
+
+@theme {
+  --color-indirect: var(--app-color-primary);
+}

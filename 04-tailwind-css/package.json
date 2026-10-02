@@ -4,7 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx @tailwindcss/cli -i ./src/index.css -o ./dist/output.css"
+    "build": "npm run build:a && npm run build:b && npm run build:c && npm run build:d && npm run build:compare",
+    "build:a": "npx @tailwindcss/cli -i ./configs/a-indirection.css -o ./dist/a-indirection.css",
+    "build:b": "npx @tailwindcss/cli -i ./configs/b-indirection-fallback.css -o ./dist/b-indirection-fallback.css",
+    "build:c": "npx @tailwindcss/cli -i ./configs/c-direct.css -o ./dist/c-direct.css",
+    "build:d": "npx @tailwindcss/cli -i ./configs/d-theme-inline.css -o ./dist/d-theme-inline.css",
+    "build:compare": "npx @tailwindcss/cli -i ./configs/compare.css -o ./dist/compare.css",
+    "build:index": "npx @tailwindcss/cli -i ./src/index.css -o ./dist/output.css",
+    "probes": "bash ./scripts/run-probes.sh",
+    "verify": "npm run build && npm run probes"
   },
   "keywords": [],
   "author": "Billy Lando <billyjov@uni-bremen.de>",

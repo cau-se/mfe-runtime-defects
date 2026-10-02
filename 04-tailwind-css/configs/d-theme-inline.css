@@ -1,0 +1,11 @@
+/* Configuration D - identical to A except for the `inline` keyword.
+   Emits:  .bg-inline { background-color: var(--app-color-primary); }
+   The theme value is substituted into the utility, so the chain is resolved on
+   the consuming element instead of at :root. */
+@import "tailwindcss";
+
+@source "../src";
+
+@theme inline {
+  --color-inline: var(--app-color-primary);
+}

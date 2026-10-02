@@ -1,3 +1,26 @@
+/*
+  Original demo entry: Tailwind v4 `@theme inline`.
+
+  This is Configuration D in the experiment matrix. `inline` makes Tailwind
+  substitute the theme VALUE into every utility that uses the token, so the
+  generated rule is
+
+      .bg-app-primary { background-color: var(--app-color-primary); }
+
+  and the lookup happens on the consuming element. A value declared on the
+  element therefore works.
+
+  The production pattern that motivated this study is the non-inline form,
+  which emits
+
+      :root            { --color-app-primary: var(--app-color-primary); }
+      .bg-app-primary  { background-color: var(--color-app-primary); }
+
+  and resolves the inner reference at :root instead. That variant is
+  configs/a-indirection.css, and it is what src/index.html loads by default.
+
+  All four configurations live in configs/; `npm run build` compiles them all.
+*/
 @import "tailwindcss";
 
 @theme inline {

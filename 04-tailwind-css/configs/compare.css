@@ -1,0 +1,38 @@
+/*
+  All four token patterns in ONE document, for visual comparison.
+
+  Each pattern gets its own token name so the four utilities can coexist
+  without overwriting each other. The inner variable --app-color-primary is
+  shared, which is the point: it is the one name every pattern depends on and
+  no pattern owns.
+
+  The canonical single-pattern builds (configs/a-indirection.css and friends)
+  are unchanged and remain the measurement inputs; scripts/run-probes.sh
+  checks that this combined build produces the same computed values.
+*/
+@import "tailwindcss";
+
+@source "../src";
+
+/* A - indirection, no fallback. Utility becomes
+       background-color: var(--color-indirect)          -> chain resolved at :root */
+@theme {
+  --color-indirect: var(--app-color-primary);
+}
+
+/* B - indirection with a fallback value. */
+@theme {
+  --color-indirect-fallback: var(--app-color-primary, #e2533f);
+}
+
+/* C - concrete value, no indirection. */
+@theme {
+  --color-direct: #e2533f;
+}
+
+/* D - the same indirection as A, but declared `inline`. Tailwind substitutes
+       the theme value into the utility, which becomes
+       background-color: var(--app-color-primary)       -> chain resolved on the element */
+@theme inline {
+  --color-inline: var(--app-color-primary);
+}

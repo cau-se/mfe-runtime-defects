@@ -1,0 +1,272 @@
+<!doctype html>
+<!--
+  Token resolution probe / comparison page.
+
+  Two modes:
+
+    probe.html?scope=local|global
+        Default. Loads dist/compare.css, which contains all four token
+        patterns side by side. The whole comparison is visible at once, no
+        query-parameter fiddling per configuration.
+
+    probe.html?v=a-indirection&scope=local|global
+        Isolated mode. Loads dist/<v>.css, i.e. the canonical single-pattern
+        build. scripts/run-probes.sh uses this to confirm that showing all four
+        patterns in one document does not change any computed value.
+
+  scope controls where the inner variable --app-color-primary is defined:
+        global -> at :root, the scope every micro-frontend shares
+        local  -> only on the consuming element, i.e. inside one micro-frontend
+
+  Every box prints its own computed background colour underneath, and the full
+  observation is written to <pre id="out"> as JSON. What you see on screen is
+  byte-for-byte what the script records.
+
+  rgb(226, 83, 63) = #e2533f, the value declared on the element.
+  rgb(10, 125, 63) = #0a7d3f, the value declared at :root in scope=global.
+  rgba(0, 0, 0, 0) = the declaration was discarded as invalid at
+                     computed-value time, with no build or console error.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Token resolution probe</title>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const variant = params.get('v'); // null -> combined comparison
+      const scope = params.get('scope') ?? 'local';
+      const href = variant ? `../dist/${variant}.css` : '../dist/compare.css';
+
+      document.write(`<link rel="stylesheet" href="${href}">`);
+      if (scope === 'global') {
+        document.write(
+          `<style>:root { --app-color-primary: #0a7d3f; }</style>`,
+        );
+      }
+    </script>
+    <style>
+      body {
+        font: 13px/1.5 ui-monospace, monospace;
+        padding: 16px;
+        max-width: 1000px;
+      }
+      h1 {
+        font-size: 16px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 6px;
+        text-align: left;
+        vertical-align: top;
+        width: 33%;
+      }
+      .box {
+        padding: 10px;
+        border: 1px dashed #999;
+        color: #fff;
+      }
+      .val {
+        font-size: 11px;
+        color: #333;
+        margin-top: 4px;
+        white-space: pre-wrap;
+      }
+      pre {
+        background: #111;
+        color: #9fb3c8;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Token resolution probe</h1>
+    <p id="meta"></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>token configuration</th>
+          <th>element declares the value locally</th>
+          <th>element declares nothing</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <b>A</b> <code>@theme</code>, indirect<br />
+            <code>.bg-indirect</code>
+          </td>
+          <td>
+            <div
+              class="box bg-indirect"
+              data-cell="A"
+              style="--app-color-primary: #e2533f;"
+            >
+              A / local
+            </div>
+          </td>
+          <td>
+            <div class="box bg-indirect" data-cell="A">A / root</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>B</b> <code>@theme</code>, indirect + fallback<br />
+            <code>.bg-indirect-fallback</code>
+          </td>
+          <td>
+            <div
+              class="box bg-indirect-fallback"
+              data-cell="B"
+              style="--app-color-primary: #e2533f;"
+            >
+              B / local
+            </div>
+          </td>
+          <td>
+            <div class="box bg-indirect-fallback" data-cell="B">B / root</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>C</b> <code>@theme</code>, concrete value<br />
+            <code>.bg-direct</code>
+          </td>
+          <td>
+            <div
+              class="box bg-direct"
+              data-cell="C"
+              style="--app-color-primary: #e2533f;"
+            >
+              C / local
+            </div>
+          </td>
+          <td>
+            <div class="box bg-direct" data-cell="C">C / root</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>D</b> <code>@theme inline</code>, indirect<br />
+            <code>.bg-inline</code>
+          </td>
+          <td>
+            <div
+              class="box bg-inline"
+              data-cell="D"
+              style="--app-color-primary: #e2533f;"
+            >
+              D / local
+            </div>
+          </td>
+          <td>
+            <div class="box bg-inline" data-cell="D">D / root</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      The row that matters is <b>A vs D</b>: identical source indirection, the
+      only difference is the <code>inline</code> keyword on the
+      <code>@theme</code> block.
+    </p>
+
+    <pre id="out">running…</pre>
+
+    <script>
+      document.getElementById('meta').textContent =
+        `mode: ${variant ? 'isolated (' + variant + ')' : 'combined comparison'}   ` +
+        `inner variable --app-color-primary defined at: ${scope === 'global' ? ':root' : 'consuming element only'}`;
+
+      // In isolated mode only one token exists in the stylesheet, so hide the
+      // rows whose class that build does not define.
+      const wanted = variant ? variant[0].toUpperCase() : null;
+
+      const verdict = (c) =>
+        c === 'rgba(0, 0, 0, 0)' || c === 'transparent'
+          ? 'INVALID (declaration discarded)'
+          : 'resolved';
+
+      // An empty computed custom property is ambiguous: it means either "never
+      // declared" or "declared, but the var() chain resolved to the
+      // guaranteed-invalid value". Those are different findings, so look the
+      // declaration up in the CSSOM as well.
+      const TOKEN = {
+        A: '--color-indirect',
+        B: '--color-indirect-fallback',
+        C: '--color-direct',
+        D: '--color-inline',
+      };
+
+      const declaredAt = (name) => {
+        try {
+          for (const sheet of document.styleSheets) {
+            const walk = (rules) => {
+              for (const rule of rules) {
+                if (rule.cssRules) {
+                  const nested = walk(rule.cssRules);
+                  if (nested) return nested;
+                }
+                if (rule.style && rule.style.getPropertyValue(name) !== '') {
+                  return rule.selectorText ?? 'unknown selector';
+                }
+              }
+              return null;
+            };
+            const hit = walk(sheet.cssRules);
+            if (hit) return hit;
+          }
+        } catch {
+          return 'stylesheet not readable';
+        }
+        return 'not declared in any loaded stylesheet';
+      };
+
+      const cells = [...document.querySelectorAll('[data-cell]')]
+        .filter((el) => {
+          if (!wanted) return true;
+          const show = el.dataset.cell === wanted;
+          el.closest('tr').hidden = !show;
+          return show;
+        })
+        .map((el) => {
+        const cs = getComputedStyle(el);
+        const box = {
+          configuration: el.dataset.cell,
+          declaresLocally: el.style.cssText.includes('--app-color-primary'),
+          backgroundColor: cs.backgroundColor,
+          tokenName: TOKEN[el.dataset.cell],
+          tokenDeclaredAt: declaredAt(TOKEN[el.dataset.cell]),
+          tokenComputedValue:
+            cs.getPropertyValue(TOKEN[el.dataset.cell]).trim() ||
+            '<guaranteed-invalid or absent>',
+          innerVariable: cs.getPropertyValue('--app-color-primary').trim() || '<absent>',
+        };
+        box.outcome = verdict(box.backgroundColor);
+
+        // Show the measurement inside the page, not only in the JSON.
+        const note = document.createElement('div');
+        note.className = 'val';
+        note.textContent = `${box.backgroundColor}\n${box.outcome}`;
+        el.after(note);
+        return box;
+      });
+
+      const result = {
+        mode: variant ? 'isolated' : 'combined',
+        variant: variant ?? 'compare',
+        scope,
+        cells,
+      };
+
+      document.getElementById('out').textContent = JSON.stringify(result);
+    </script>
+  </body>
+</html>

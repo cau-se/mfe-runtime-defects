@@ -1,0 +1,9 @@
+/* Configuration C - direct declaration, no indirection.
+   Emits:  .bg-direct { background-color: var(--color-direct); } */
+@import "tailwindcss";
+
+@source "../src";
+
+@theme {
+  --color-direct: #e2533f;
+}

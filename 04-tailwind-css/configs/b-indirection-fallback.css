@@ -1,0 +1,9 @@
+/* Configuration B - token indirection with a fallback value.
+   Emits:  .bg-indirect-fallback { background-color: var(--color-indirect-fallback); } */
+@import "tailwindcss";
+
+@source "../src";
+
+@theme {
+  --color-indirect-fallback: var(--app-color-primary, #e2533f);
+}

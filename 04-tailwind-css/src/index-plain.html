@@ -1,37 +1,126 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    /* Simulating what Tailwind @theme does */
-    :root {
-      --color-app-primary: var(--app-color-primary);
-    }
+<!doctype html>
+<!--
+  Framework-free control for the Tailwind experiment (04).
 
-    /* Utility class (like bg-app-primary) */
-    .bg-app-primary {
-      /* background-color: var(--color-app-primary); */
-      background-color: var(--app-color-primary);
-      color: white;
-      padding: 20px;
-      margin-top: 20px;
-    }
-  </style>
-</head>
+  This page contains no Tailwind, no build step and no component model. It
+  hand-writes exactly what Tailwind's `@theme` emits, so it isolates the
+  failure to the CSS custom-property resolution rules in the browser.
 
-<body style="font-family: sans-serif; padding: 20px;">
+  Two token styles, side by side, on two elements that declare the SAME local
+  value --app-color-primary: #e2533f:
 
-  <h2>CSS Variable Indirection Problem</h2>
+    .u-indirect   background: var(--color-indirect)
+               <- what `@theme { --color-indirect: var(--app-color-primary) }`
+                  produces. Expected: TRANSPARENT (silent failure).
+    .u-direct  background: var(--app-color-primary)
+               <- what `@theme inline { ... }` produces, because the theme value
+                  is inlined into the utility. Expected: RED (resolves).
 
-  <p>Expected: Box should be <b style="color:red;">red</b></p>
+  Why the first one fails although the element declares the inner variable
+  itself: a custom property is substituted where it is DECLARED, not where it
+  is used. --color-indirect is declared on :root, so the browser evaluates
+  var(--app-color-primary) on :root, finds nothing, and stores the
+  guaranteed-invalid value. The element inherits that invalid value; its own
+  local declaration is never consulted.
 
-  <!-- Variable defined ONLY locally -->
-  <div 
-    style="--app-color-primary: red;"
-    class="bg-app-primary"
-  >
-    <span style="color: black">Test Box</span>
-  </div>
+  The computed result is written to <pre id="out"> as one JSON line, so the
+  observation is recorded rather than eyeballed.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plain CSS token indirection control</title>
+    <style>
+      /* What Tailwind's non-inline @theme emits: the exported token forwards
+         to another custom property, and the substitution happens HERE, at
+         document scope. */
+      :root {
+        --color-indirect: var(--app-color-primary);
+      }
 
-</body>
+      /* Utility as emitted by `@theme` (Configuration A). */
+      .u-indirect {
+        background-color: var(--color-indirect);
+      }
+
+      /* Utility as emitted by `@theme inline` (Configuration D): the theme
+         value is inlined, so the substitution happens on the element. */
+      .u-direct {
+        background-color: var(--app-color-primary);
+      }
+
+      body {
+        font: 13px/1.5 ui-monospace, monospace;
+        padding: 16px;
+      }
+      .box {
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px dashed #999;
+      }
+      pre {
+        background: #111;
+        color: #9fb3c8;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Same element, same local token, two token architectures</h2>
+
+    <div
+      id="indirect-box"
+      class="box u-indirect"
+      style="--app-color-primary: #e2533f;"
+    >
+      indirection through the exported token — expected: transparent
+    </div>
+
+    <div
+      id="direct-box"
+      class="box u-direct"
+      style="--app-color-primary: #e2533f;"
+    >
+      direct reference — expected: red
+    </div>
+
+    <pre id="out">running…</pre>
+
+    <script>
+      const read = (id) => {
+        const cs = getComputedStyle(document.getElementById(id));
+        return {
+          element: id,
+          backgroundColor: cs.backgroundColor,
+          // Empty here means either "never declared" or "declared but the
+          // var() chain resolved to the guaranteed-invalid value". In this
+          // page --color-indirect IS declared, on :root, and resolves to
+          // invalid; the CSSOM check in probe.html shows the distinction.
+          tokenComputedValue:
+            cs.getPropertyValue('--color-indirect').trim() ||
+            '<guaranteed-invalid or absent>',
+          innerVariable:
+            cs.getPropertyValue('--app-color-primary').trim() || '<absent>',
+        };
+      };
+
+      const verdict = (c) =>
+        c === 'rgba(0, 0, 0, 0)' || c === 'transparent'
+          ? 'INVALID (declaration discarded)'
+          : 'resolved';
+
+      const result = {
+        configuration: 'plain-control',
+        variant: 'plain-indirection-control',
+        scope: 'local',
+        cells: [read('indirect-box'), read('direct-box')].map((b) => ({
+          ...b,
+          outcome: verdict(b.backgroundColor),
+        })),
+      };
+
+      document.getElementById('out').textContent = JSON.stringify(result);
+    </script>
+  </body>
 </html>
