@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="../dist/output.css" rel="stylesheet">
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+
+  <h2>Tailwind Theme Variable Resolution Demo</h2>
+
+  <p>Expected: Box should be <b style="color:red;">red</b></p>
+
+  <!-- IMPORTANT: variable is ONLY defined locally -->
+  <div 
+    style="--app-color-primary: red; margin-top:20px;"
+    class="bg-app-primary text-white p-6"
+  >
+    <span style="color: black">Test Box</span>
+  </div>
+
+</body>
+</html>

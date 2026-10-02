@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /* Simulating what Tailwind @theme does */
+    :root {
+      --color-app-primary: var(--app-color-primary);
+    }
+
+    /* Utility class (like bg-app-primary) */
+    .bg-app-primary {
+      /* background-color: var(--color-app-primary); */
+      background-color: var(--app-color-primary);
+      color: white;
+      padding: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body style="font-family: sans-serif; padding: 20px;">
+
+  <h2>CSS Variable Indirection Problem</h2>
+
+  <p>Expected: Box should be <b style="color:red;">red</b></p>
+
+  <!-- Variable defined ONLY locally -->
+  <div 
+    style="--app-color-primary: red;"
+    class="bg-app-primary"
+  >
+    <span style="color: black">Test Box</span>
+  </div>
+
+</body>
+</html>

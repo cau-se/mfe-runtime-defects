@@ -1,0 +1,21 @@
+{
+  "name": "css-token",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @tailwindcss/cli -i ./src/index.css -o ./dist/output.css"
+  },
+  "keywords": [],
+  "author": "Billy Lando <billyjov@uni-bremen.de>",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2"
+  }
+}
